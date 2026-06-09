@@ -1,0 +1,26 @@
+# Dependencias
+backend/node_modules/
+
+# Build
+backend/dist/
+backend/coverage/
+
+# Variables de entorno (secretos)
+.env
+backend/.env
+
+# Base de datos y exportaciones (datos de runtime)
+*.db
+*.db-journal
+data/*.db
+data/exports/
+
+# Logs
+*.log
+npm-debug.log*
+
+# SO / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

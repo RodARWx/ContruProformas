@@ -1,0 +1,25 @@
+Actúa como un Arquitecto de Software Experto en NestJS, TypeScript y TypeORM/Prisma. Vamos a construir el backend para "Construproformas", una Web App Mobile-First de generación de proformas para la empresa de ingeniería civil Construmétrica. El sistema correrá en un entorno local dockerizado sobre un NAS con SQLite como base de datos.
+
+Sigue estrictamente estas directrices de diseño y arquitectura:
+
+1. ARQUITECTURA DEL PROYECTO:
+- Usa la arquitectura modular nativa de NestJS. Separa el sistema en módulos independientes: 'profiles', 'customers', 'catalog', y 'proformas'.
+- Cada módulo debe contar con su correspondiente Entity, Controller, Service y DTOs bien tipados usando class-validator y class-transformer.
+- Implementa un Global Exception Filter para normalizar y capturar de forma limpia los errores funcionales, devolviendo mensajes comprensibles al frontend.
+
+2. MODELO DE DATOS (SQLite):
+Define las siguientes entidades con sus relaciones relacionales:
+- Profile: id, nombre, cargo, registroSenescyt, telefono, correo.
+- Customer: id, nombreCliente, rucCedula, direccion, telefono, correo.
+- ItemCatalog (Rubros): id, codigoSugerido, descripcion, unidad, costoUnitario.
+- Proforma (Cabecera): idProforma (String, PK editable), nombreProyecto, tiempoEjecucion, fecha, notas, subtotal, iva, totalGeneral, appliesIva (boolean), status (enum: 'DRAFT', 'EXPORTED'). Relación ManyToOne con Profile y Customer.
+- ProformaDetail (Líneas de Rubros): id, codigo, descripcion, tiempo, unidad, cantidad, costoUnitario, total. Relación ManyToOne con Proforma (con Cascade en borrado/actualización).
+
+3. REGLAS DE NEGOCIO ESTRICTAS (A implementar en el Service de Proformas):
+- Cálculo de Totales: El backend DEBE recalcular matemáticamente de manera estricta cada línea de detalle (cantidad * costoUnitario) y los totales del documento (subtotal, IVA basado en el booleano 'appliesIva' y tasa configurable, y totalGeneral). No confíes en los totales enviados directamente por el cliente.
+- Control de ID Secuencial: Crea un endpoint 'GET /proformas/next-id' que busque el último ID numérico guardado en la base de datos, extraiga el secuencial y sugiera el siguiente (Ej: si el último es 'CM-PROF-85', debe sugerir 'CM-PROF-86'). Sin embargo, permite que el POST reciba un ID manual ingresado por el usuario, validando que no esté duplicado en registros exportados.
+- Clonación: Implementa 'POST /proformas/:id/clone'. Debe buscar la proforma por ID, duplicar su cabecera y todas sus líneas de detalle asociadas, y retornar la estructura limpia lista para edición, asignándole un nuevo ID sugerido.
+- Sincronización Offline: Implementa 'POST /proformas/sync' que reciba un arreglo (array) de proformas recopiladas por la PWA en modo offline, procesando e insertando de manera masiva cada una resguardando la integridad referencial.
+
+4. CÓDIGO A GENERAR:
+Comienza generando la estructura de carpetas, el archivo 'docker-compose.yml' configurando NestJS con el volumen persistente para SQLite, y escribe el código completo para el módulo 'proformas' (entidades, DTOs de entrada/validación, controlador y la lógica del servicio con las reglas de negocio descritas). Asegúrate de incluir comentarios claros en español.
