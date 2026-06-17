@@ -1,0 +1,49 @@
+@import 'tailwindcss';
+@import './styles/typography.css';
+
+@theme {
+  --color-brand-coral: #d07761;
+  --color-brand-red: #ff0033;
+  --color-brand-wine: #550012;
+  --color-brand-gray: #444242;
+
+  /* TODO: reemplazar por Gotham cuando se tengan los archivos/licencia */
+  --font-sans: var(--font-body);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  color: var(--color-brand-gray);
+  background-color: #fafafa;
+}
+
+/*
+ * Manual de marca: el acento coral (#d07761) se usa en botones y fondos sólidos
+ * con texto blanco. Para enlaces y texto sobre fondos claros, preferir wine/gray
+ * para mantener contraste legible en móvil y escritorio.
+ */
+.app-text-link {
+  color: var(--color-brand-wine);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+
+.app-text-link:focus-visible {
+  outline: 2px solid var(--color-brand-coral);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
