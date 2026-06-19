@@ -15,7 +15,7 @@ services:
       - key: API_KEY
         sync: false
       - key: CORS_ORIGIN
-        sync: false
+        value: https://contruproformas-web.onrender.com
       - key: IVA_RATE
         value: 0.15
 

@@ -31,6 +31,11 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
+
+    // Preflight CORS del navegador no envía X-API-KEY; debe pasar sin autenticación.
+    if (request.method === 'OPTIONS') {
+      return true;
+    }
     const providedKey = request.headers['x-api-key'];
     const expectedKey = this.configService.get<string>('API_KEY');
 

@@ -12,6 +12,7 @@ import { CategoriesModule } from './categories/categories.module';
 import { ProformasModule } from './proformas/proformas.module';
 import { DatabaseModule } from './database/database.module';
 import { ExportModule } from './export/export.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { ExportModule } from './export/export.module';
       useFactory: getDatabaseConfig,
     }),
     DatabaseModule,
+    HealthModule,
     ProfilesModule,
     CustomersModule,
     CategoriesModule,

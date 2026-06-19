@@ -3,29 +3,24 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
-/** Orígenes permitidos para CORS (lista separada por comas, `*` o vacío en cloud). */
+/** Normaliza URL de origen (sin barra final). */
+function normalizeOrigin(origin: string): string {
+  return origin.trim().replace(/\/+$/, '');
+}
+
+/**
+ * Orígenes CORS permitidos.
+ * Vacío o `*` → refleja el origen de cada petición (recomendado en Render/Railway).
+ * Lista separada por comas → solo esos frontends (ej. https://contruproformas-web.onrender.com).
+ */
 function resolveCorsOrigin(): boolean | string | string[] {
   const raw = process.env.CORS_ORIGIN?.trim();
-  if (!raw) {
-    const isCloud =
-      process.env.NODE_ENV === 'production' ||
-      Boolean(process.env.RAILWAY_ENVIRONMENT) ||
-      Boolean(process.env.RENDER);
-    if (isCloud) {
-      console.warn(
-        'CORS_ORIGIN no definido: se aceptará el origen de cada petición. ' +
-          'Defina CORS_ORIGIN=https://su-frontend para mayor control.',
-      );
-      return true;
-    }
-    return false;
-  }
-  if (raw === '*') {
+  if (!raw || raw === '*') {
     return true;
   }
-  const origins = raw.split(',').map((origin) => origin.trim()).filter(Boolean);
+  const origins = raw.split(',').map(normalizeOrigin).filter(Boolean);
   if (origins.length === 0) {
-    return false;
+    return true;
   }
   return origins.length === 1 ? origins[0] : origins;
 }
@@ -37,14 +32,17 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   const corsOrigin = resolveCorsOrigin();
-  if (corsOrigin) {
-    app.enableCors({
-      origin: corsOrigin,
-      credentials: true,
-      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-KEY'],
-    });
-  }
+  // Siempre activo: el frontend en Render/Railway es otro dominio y el navegador exige CORS.
+  app.enableCors({
+    origin: corsOrigin,
+    credentials: true,
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-KEY'],
+  });
+  console.log(
+    'CORS habilitado para:',
+    corsOrigin === true ? 'cualquier origen (reflect)' : corsOrigin,
+  );
 
   // Validación automática de DTOs entrantes
   app.useGlobalPipes(
