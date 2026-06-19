@@ -82,12 +82,8 @@ export function buildProformaHtmlDocument(
     })
     .join('\n');
 
-  const ivaLabel = proforma.appliesIva
-    ? `IVA (${Math.round(ivaRate * 100)}%):`
-    : 'IVA (0%):';
-  const ivaValue = proforma.appliesIva
-    ? formatCurrency(proforma.iva)
-    : formatCurrency(0);
+  const ivaLabel = proforma.iva > 0 ? 'IVA:' : 'IVA (0%):';
+  const ivaValue = formatCurrency(proforma.iva);
 
   return `<!DOCTYPE html>
 <html lang="es">

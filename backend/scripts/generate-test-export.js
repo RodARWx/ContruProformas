@@ -11,19 +11,19 @@ process.env.PROFORMA_VALIDATION_BASE_URL = 'https://construmetrica.com/validar';
 
 const {
   ProformaExcelExportService,
-} = require('../dist/export/services/proforma-excel-export.service');
+} = require('../dist/src/export/services/proforma-excel-export.service');
 const {
   ProformaPdfExportService,
-} = require('../dist/export/services/proforma-pdf-export.service');
+} = require('../dist/src/export/services/proforma-pdf-export.service');
 const {
   ProformaHtmlPdfService,
-} = require('../dist/export/services/proforma-html-pdf.service');
+} = require('../dist/src/export/services/proforma-html-pdf.service');
 const {
   calculateProformaTotals,
-} = require('../dist/proformas/helpers/proforma-calculator.helper');
+} = require('../dist/src/proformas/helpers/proforma-calculator.helper');
 const {
   ProformaStatus,
-} = require('../dist/proformas/enums/proforma-status.enum');
+} = require('../dist/src/proformas/enums/proforma-status.enum');
 
 const configService = {
   get: (key, defaultValue) => process.env[key] ?? defaultValue,
@@ -38,6 +38,8 @@ const detallesInput = [
     unidad: 'u',
     cantidad: 1,
     costoUnitario: 850,
+    diasLaborables: 4,
+    ivaPercentage: 15,
   },
   {
     codigo: '1.2',
@@ -46,6 +48,8 @@ const detallesInput = [
     unidad: 'u',
     cantidad: 2,
     costoUnitario: 420,
+    diasLaborables: 3,
+    ivaPercentage: 15,
   },
   { esCategoria: true, descripcion: '2. DISEÑO VIAL Y PAVIMENTO' },
   {
@@ -55,6 +59,8 @@ const detallesInput = [
     unidad: 'Glb',
     cantidad: 11462.45,
     costoUnitario: 0.32,
+    diasLaborables: 5,
+    ivaPercentage: 15,
   },
   {
     codigo: '2.2',
@@ -63,6 +69,8 @@ const detallesInput = [
     unidad: 'km',
     cantidad: 3.5,
     costoUnitario: 180,
+    diasLaborables: 2,
+    ivaPercentage: 15,
   },
   { esCategoria: true, descripcion: '3. INFORMES Y ENTREGABLES' },
   {
@@ -72,24 +80,26 @@ const detallesInput = [
     unidad: 'u',
     cantidad: 1,
     costoUnitario: 650,
+    diasLaborables: 3,
+    ivaPercentage: 15,
   },
 ];
 
 (async () => {
   mkdirSync(join(__dirname, '../data'), { recursive: true });
 
-  const calculated = calculateProformaTotals(detallesInput, true, 0.15);
+  const calculated = calculateProformaTotals(detallesInput);
 
   const proforma = {
     idProforma: 'CM-PROF-TEST-05',
     nombreProyecto: 'PROFORMA DISEÑO VIAL SEDEMI (GUAYAQUIL)',
-    tiempoEjecucion: '17 días',
+    tiempoEjecucion: calculated.tiempoEjecucion,
     fecha: '2026-06-16',
     notas: null,
     subtotal: calculated.subtotal,
     iva: calculated.iva,
     totalGeneral: calculated.totalGeneral,
-    appliesIva: true,
+    montoContrato: calculated.montoContrato,
     status: ProformaStatus.DRAFT,
     profileId: 1,
     customerId: 1,
@@ -120,6 +130,8 @@ const detallesInput = [
       costoUnitario: linea.costoUnitario ?? 0,
       total: linea.total,
       esCategoria: linea.esCategoria ?? false,
+      diasLaborables: linea.diasLaborables ?? 0,
+      ivaPercentage: linea.ivaPercentage ?? 0,
     })),
   };
 

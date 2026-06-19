@@ -349,21 +349,18 @@ function drawTotalsBlock(
     result: proforma.subtotal,
   };
 
-  if (proforma.appliesIva) {
+  if (proforma.iva > 0) {
     styleCell(sheet.getCell(`F${ivaRow}`), {
       font: FONT_BOLD,
       alignment: { horizontal: 'right', vertical: 'middle' },
-    }).value = `IVA(${Math.round(ivaRate * 100)}%):`;
+    }).value = 'IVA:';
 
     styleCell(sheet.getCell(`G${ivaRow}`), {
       font: FONT_BASE,
       alignment: { horizontal: 'right', vertical: 'middle' },
       border: THIN_BORDER,
       numFmt: MONEY_FORMAT,
-    }).value = {
-      formula: `${ivaRate}*G${totalsRow}`,
-      result: proforma.iva,
-    };
+    }).value = proforma.iva;
   } else {
     styleCell(sheet.getCell(`F${ivaRow}`), { font: FONT_BOLD }).value =
       'IVA(0%):';
