@@ -18,9 +18,9 @@ export function getDatabaseConfig(): TypeOrmModuleOptions {
     mkdirSync(databaseDir, { recursive: true });
   }
 
-  const synchronize =
-    process.env.DB_SYNCHRONIZE === 'true' ||
-    process.env.NODE_ENV !== 'production';
+  // Por defecto sincroniza el esquema (SQLite sin migraciones).
+  // Desactivar solo en producción madura: DB_SYNCHRONIZE=false
+  const synchronize = process.env.DB_SYNCHRONIZE !== 'false';
 
   return {
     type: 'better-sqlite3',

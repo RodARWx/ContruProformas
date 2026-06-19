@@ -242,6 +242,14 @@ Ambas rutas quedan bajo el volumen montado `/app/data`.
 
 Headers permitidos: `Content-Type`, `Authorization`, `X-API-KEY`.
 
-**Railway:** configurar variables `PORT` (automático), `DATABASE_PATH=/app/data/construproformas.db`, `API_KEY`, `CORS_ORIGIN`, montar volumen en `/app/data`. Health check path: `/api/health`.
+**Railway:** configurar variables `PORT` (automático), `DATABASE_PATH=/app/data/construproformas.db`, `DB_SYNCHRONIZE=true` (o omitir: el código sincroniza salvo `DB_SYNCHRONIZE=false`), `API_KEY`, `CORS_ORIGIN`, montar volumen en `/app/data`. Health check path: `/api/health`.
 
 **No modificado:** lógica de negocio, módulos de dominio ni calculador de proformas.
+
+---
+
+## 2026-06-19 — Fix Railway: tablas SQLite al primer arranque
+
+| Archivo | Motivo | Descripción |
+|---------|--------|-------------|
+| `backend/src/config/database.config.ts` | Crash `no such table: profiles` | `synchronize` ahora es **true por defecto**; solo se desactiva con `DB_SYNCHRONIZE=false`. Antes, en `NODE_ENV=production` sin `DB_SYNCHRONIZE=true`, TypeORM no creaba tablas y el seed fallaba. |
