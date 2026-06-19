@@ -18,12 +18,17 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl libreoffice fontconfig
 
 # Reutiliza node_modules ya compilados (better-sqlite3) desde la etapa builder
 COPY package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/assets ./assets
+
+RUN mkdir -p /usr/share/fonts/truetype/gotham && \
+    cp -f assets/fonts/*.otf assets/fonts/*.ttf /usr/share/fonts/truetype/gotham/ 2>/dev/null || true && \
+    fc-cache -f
 
 RUN mkdir -p /app/data
 
