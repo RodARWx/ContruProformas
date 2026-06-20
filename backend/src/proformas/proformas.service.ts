@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Not, Repository } from 'typeorm';
 import { Customer } from '../customers/entities/customer.entity';
 import { Profile } from '../profiles/entities/profile.entity';
 import { CreateProformaDto } from './dto/create-proforma.dto';
@@ -42,6 +42,16 @@ export class ProformasService {
     });
   }
 
+  /** Proformas en papelera (eliminación lógica). */
+  async findTrash(): Promise<Proforma[]> {
+    return this.proformaRepository.find({
+      withDeleted: true,
+      where: { deletedAt: Not(IsNull()) },
+      relations: [...this.defaultRelations],
+      order: { deletedAt: 'DESC' },
+    });
+  }
+
   async findOne(idProforma: string): Promise<Proforma> {
     const proforma = await this.proformaRepository.findOne({
       where: { idProforma },
@@ -62,6 +72,7 @@ export class ProformasService {
   async getNextSuggestedId(): Promise<NextIdResponse> {
     const rows = await this.proformaRepository.find({
       select: ['idProforma'],
+      withDeleted: true,
     });
     const existingIds = rows.map((row) => row.idProforma);
 
@@ -185,12 +196,17 @@ export class ProformasService {
       try {
         const existing = await this.proformaRepository.findOne({
           where: { idProforma: dto.idProforma },
+          withDeleted: true,
         });
 
         let proforma: Proforma;
 
         if (!existing) {
           proforma = await this.create(dto);
+        } else if (existing.deletedAt) {
+          throw new ConflictException(
+            `El ID "${dto.idProforma}" está en la papelera; restáurelo antes de sincronizar`,
+          );
         } else if (existing.status === ProformaStatus.EXPORTED) {
           throw new ConflictException(
             `El ID "${dto.idProforma}" ya existe en una proforma exportada`,
@@ -259,6 +275,7 @@ export class ProformasService {
   private async assertIdAvailableForCreate(idProforma: string): Promise<void> {
     const existing = await this.proformaRepository.findOne({
       where: { idProforma },
+      withDeleted: true,
     });
 
     if (!existing) {
@@ -316,5 +333,28 @@ export class ProformasService {
     const proforma = await this.findOne(idProforma);
     proforma.status = ProformaStatus.EXPORTED;
     await this.proformaRepository.save(proforma);
+  }
+
+  /** Envía la proforma a la papelera (soft delete). */
+  async remove(idProforma: string): Promise<void> {
+    await this.findOne(idProforma);
+    await this.proformaRepository.softDelete(idProforma);
+  }
+
+  /** Restaura una proforma desde la papelera. */
+  async restore(idProforma: string): Promise<Proforma> {
+    const proforma = await this.proformaRepository.findOne({
+      where: { idProforma },
+      withDeleted: true,
+    });
+
+    if (!proforma?.deletedAt) {
+      throw new NotFoundException(
+        `Proforma "${idProforma}" no encontrada en la papelera`,
+      );
+    }
+
+    await this.proformaRepository.restore(idProforma);
+    return this.findOne(idProforma);
   }
 }

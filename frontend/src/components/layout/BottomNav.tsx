@@ -10,7 +10,7 @@ export function BottomNav() {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-brand-gray/15 bg-white lg:hidden"
       aria-label="Navegación principal"
     >
-      <ul className="mx-auto grid max-w-lg grid-cols-4">
+      <ul className="mx-auto grid max-w-lg grid-cols-3 sm:grid-cols-6">
         {mainNavItems.map((item) => (
           <li key={item.to}>
             <NavLink

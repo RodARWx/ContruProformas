@@ -24,6 +24,21 @@ export function ensureArray<T>(data: unknown, resourceLabel: string): T[] {
   )
 }
 
+/** Descarga un archivo binario del backend y lo guarda en el dispositivo del usuario. */
+export async function apiDownloadFile(path: string, filename: string): Promise<void> {
+  const response = await apiClient.get(path, { responseType: 'blob' })
+  const blob = response.data as Blob
+  const objectUrl = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = objectUrl
+  anchor.download = filename
+  anchor.rel = 'noopener'
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  URL.revokeObjectURL(objectUrl)
+}
+
 /** Petición GET tipada sobre el cliente configurado. */
 export async function apiGet<T>(
   path: string,

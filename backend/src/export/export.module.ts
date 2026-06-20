@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { CatalogModule } from '../catalog/catalog.module';
 import { ProformasModule } from '../proformas/proformas.module';
+import { ExportDownloadController } from './export-download.controller';
+import { ExportDownloadService } from './export-download.service';
 import { ExportService } from './export.service';
 import { ProformaExportController } from './proforma-export.controller';
 import { ProformaExcelExportService } from './services/proforma-excel-export.service';
@@ -9,9 +11,10 @@ import { ProformaPdfExportService } from './services/proforma-pdf-export.service
 
 @Module({
   imports: [ProformasModule, CatalogModule],
-  controllers: [ProformaExportController],
+  controllers: [ProformaExportController, ExportDownloadController],
   providers: [
     ExportService,
+    ExportDownloadService,
     ProformaExcelExportService,
     ProformaPdfExportService,
     ProformaHtmlPdfService,

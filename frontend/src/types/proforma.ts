@@ -49,6 +49,7 @@ export interface Proforma {
     telefono: string | null
     correo: string | null
   }
+  deletedAt?: string | null
 }
 
 /** Cabecera de proforma en borrador local. */

@@ -33,6 +33,15 @@ export function NavIcon({ name, className }: NavIconProps) {
           <path d="M12 7v5l3 2" />
         </svg>
       )
+    case 'trash':
+      return (
+        <svg {...common}>
+          <path d="M4 7h16" />
+          <path d="M10 11v6M14 11v6" />
+          <path d="M6 7V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v2" />
+          <path d="M9 7V4h6v3" />
+        </svg>
+      )
     case 'catalog':
       return (
         <svg {...common}>

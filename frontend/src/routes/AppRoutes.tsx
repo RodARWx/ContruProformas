@@ -7,6 +7,7 @@ import { DesignSystemDemoPage } from '../pages/DesignSystemDemoPage'
 import { EditProformaPage } from '../pages/proformas/EditProformaPage'
 import { NewProformaPage } from '../pages/proformas/NewProformaPage'
 import { ProformaHistoryPage } from '../pages/proformas/ProformaHistoryPage'
+import { ProformaTrashPage } from '../pages/proformas/ProformaTrashPage'
 import { RequireAccess } from './RequireAccess'
 
 export function AppRoutes() {
@@ -17,6 +18,7 @@ export function AppRoutes() {
       <Route element={<RequireAccess />}>
         <Route index element={<Navigate to="/proformas" replace />} />
         <Route path="proformas/nueva" element={<NewProformaPage />} />
+        <Route path="proformas/papelera" element={<ProformaTrashPage />} />
         <Route path="proformas/:id/editar" element={<EditProformaPage />} />
         <Route path="proformas" element={<ProformaHistoryPage />} />
         <Route path="catalogo" element={<CatalogPage />} />

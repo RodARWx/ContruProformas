@@ -1,5 +1,13 @@
 import axios from 'axios'
-import { apiGet, apiPatch, apiPost, ensureArray, isApiConflict } from '../../lib/api'
+import {
+  apiDelete,
+  apiDownloadFile,
+  apiGet,
+  apiPatch,
+  apiPost,
+  ensureArray,
+  isApiConflict,
+} from '../../lib/api'
 import type { SyncProformasResult } from '../../types/sync'
 import type {
   NextIdResponse,
@@ -43,6 +51,26 @@ export async function updateProforma(
 
 export async function cloneProforma(idProforma: string): Promise<Proforma> {
   return apiPost<Proforma>(`/proformas/${encodeURIComponent(idProforma)}/clone`)
+}
+
+export async function fetchTrashedProformas(): Promise<Proforma[]> {
+  const data = await apiGet<unknown>('/proformas/trash')
+  return ensureArray<Proforma>(data, 'proformas en papelera')
+}
+
+export async function deleteProforma(idProforma: string): Promise<void> {
+  await apiDelete(`/proformas/${encodeURIComponent(idProforma)}`)
+}
+
+export async function restoreProforma(idProforma: string): Promise<Proforma> {
+  return apiPatch<Proforma>(`/proformas/${encodeURIComponent(idProforma)}/restore`)
+}
+
+export async function downloadExportFile(filename: string): Promise<void> {
+  await apiDownloadFile(
+    `/export/download/${encodeURIComponent(filename)}`,
+    filename,
+  )
 }
 
 export async function exportProforma(

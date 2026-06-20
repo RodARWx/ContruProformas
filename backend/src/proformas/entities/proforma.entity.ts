@@ -5,6 +5,7 @@ import {
   ManyToOne,
   OneToMany,
   JoinColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 import { Profile } from '../../profiles/entities/profile.entity';
 import { Customer } from '../../customers/entities/customer.entity';
@@ -71,4 +72,8 @@ export class Proforma {
     cascade: true,
   })
   detalles: ProformaDetail[];
+
+  /** Papelera: fecha de eliminación lógica (null = activa). */
+  @DeleteDateColumn({ type: 'datetime', nullable: true })
+  deletedAt: Date | null;
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -18,10 +19,16 @@ import { ProformasService } from './proformas.service';
 export class ProformasController {
   constructor(private readonly proformasService: ProformasService) {}
 
-  /** Lista todas las proformas con sus relaciones */
+  /** Lista todas las proformas activas con sus relaciones */
   @Get()
   findAll(): Promise<Proforma[]> {
     return this.proformasService.findAll();
+  }
+
+  /** Proformas eliminadas (papelera) */
+  @Get('trash')
+  findTrash(): Promise<Proforma[]> {
+    return this.proformasService.findTrash();
   }
 
   /**
@@ -42,7 +49,7 @@ export class ProformasController {
     return this.proformasService.syncBatch(dto.proformas);
   }
 
-  /** Obtiene una proforma por su ID editable */
+  /** Obtiene una proforma activa por su ID editable */
   @Get(':id')
   findOne(@Param('id') id: string): Promise<Proforma> {
     return this.proformasService.findOne(id);
@@ -66,6 +73,12 @@ export class ProformasController {
     return this.proformasService.clone(id);
   }
 
+  /** Restaura una proforma desde la papelera */
+  @Patch(':id/restore')
+  restore(@Param('id') id: string): Promise<Proforma> {
+    return this.proformasService.restore(id);
+  }
+
   /** Actualiza una proforma en borrador recalculando totales si corresponde */
   @Patch(':id')
   update(
@@ -73,5 +86,11 @@ export class ProformasController {
     @Body() dto: UpdateProformaDto,
   ): Promise<Proforma> {
     return this.proformasService.update(id, dto);
+  }
+
+  /** Envía la proforma a la papelera (eliminación lógica) */
+  @Delete(':id')
+  remove(@Param('id') id: string): Promise<void> {
+    return this.proformasService.remove(id);
   }
 }

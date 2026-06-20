@@ -1,6 +1,9 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { existsSync } from 'fs';
 import { In, Repository } from 'typeorm';
+import { ItemCatalog } from '../catalog/entities/item-catalog.entity';
+import { Category } from '../categories/entities/category.entity';
 import { Customer } from '../customers/entities/customer.entity';
 import {
   FIXED_PROFILES,
@@ -8,11 +11,18 @@ import {
 } from '../profiles/fixed-profiles.constant';
 import { Profile } from '../profiles/entities/profile.entity';
 import { Proforma } from '../proformas/entities/proforma.entity';
+import {
+  DEFAULT_CATALOG_UNIT,
+  DEFAULT_CATALOG_UNIT_COST,
+  readCatalogProductsFromExcel,
+  resolveProductosExcelPath,
+} from './catalog-excel.seed';
 
 /**
  * Siembra datos mínimos al iniciar la aplicación.
  * Perfiles: exactamente dos registros fijos de Construmétrica (ids 1 y 2).
  * Cliente id=1: dato de prueba para validación referencial de proformas.
+ * Catálogo: categorías y rubros desde seed-data/productos.xlsx (idempotente).
  */
 @Injectable()
 export class DatabaseSeedService implements OnApplicationBootstrap {
@@ -25,11 +35,16 @@ export class DatabaseSeedService implements OnApplicationBootstrap {
     private readonly customerRepository: Repository<Customer>,
     @InjectRepository(Proforma)
     private readonly proformaRepository: Repository<Proforma>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(ItemCatalog)
+    private readonly itemCatalogRepository: Repository<ItemCatalog>,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
     await this.seedProfiles();
     await this.seedCustomer();
+    await this.seedCatalogFromExcel();
   }
 
   /**
@@ -92,5 +107,71 @@ export class DatabaseSeedService implements OnApplicationBootstrap {
     });
 
     this.logger.log('Cliente de prueba insertado (id: 1)');
+  }
+
+  /**
+   * Carga categorías y rubros desde productos.xlsx al arrancar.
+   * Idempotente: omite rubros cuyo codigoSugerido ya exista.
+   */
+  private async seedCatalogFromExcel(): Promise<void> {
+    const excelPath = resolveProductosExcelPath();
+    if (!existsSync(excelPath)) {
+      this.logger.warn(
+        `Seed de catálogo omitido: no existe ${excelPath}. ` +
+          'Coloque seed-data/productos.xlsx en la raíz del backend.',
+      );
+      return;
+    }
+
+    try {
+      const products = await readCatalogProductsFromExcel(excelPath);
+      let categoriesCreated = 0;
+      let itemsCreated = 0;
+      let itemsSkipped = 0;
+
+      for (const product of products) {
+        const categoryExists = await this.categoryRepository.exists({
+          where: { nombre: product.categoriaNombre },
+        });
+
+        if (!categoryExists) {
+          await this.categoryRepository.save({
+            nombre: product.categoriaNombre,
+            descripcion: null,
+          });
+          categoriesCreated += 1;
+        }
+
+        const duplicateItem = await this.itemCatalogRepository.findOne({
+          where: { codigoSugerido: product.codigoSugerido },
+        });
+
+        if (duplicateItem) {
+          itemsSkipped += 1;
+          continue;
+        }
+
+        await this.itemCatalogRepository.save({
+          codigoSugerido: product.codigoSugerido,
+          descripcion: product.descripcion,
+          unidad: DEFAULT_CATALOG_UNIT,
+          costoUnitario: DEFAULT_CATALOG_UNIT_COST,
+          diasLaborables: 1,
+          ivaPercentage: product.ivaPercentage,
+          categoriaNombre: product.categoriaNombre,
+        });
+        itemsCreated += 1;
+      }
+
+      this.logger.log(
+        `Catálogo desde Excel: ${products.length} fila(s), ` +
+          `${categoriesCreated} categoría(s) nuevas, ` +
+          `${itemsCreated} rubro(s) insertados, ${itemsSkipped} omitidos (código duplicado)`,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Error desconocido';
+      this.logger.error(`No se pudo sembrar el catálogo desde Excel: ${message}`);
+    }
   }
 }

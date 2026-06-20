@@ -85,7 +85,7 @@ export class HealthService {
           profilesOnStartup: true,
           customerOnStartup: true,
           catalogFromExcel:
-            'Manual: npm run seed:catalog (productos.xlsx no se lee al arrancar)',
+            'Automático al arrancar desde seed-data/productos.xlsx (idempotente)',
         },
       };
     } catch (error) {
@@ -114,7 +114,7 @@ export class HealthService {
           profilesOnStartup: true,
           customerOnStartup: true,
           catalogFromExcel:
-            'Manual: npm run seed:catalog (productos.xlsx no se lee al arrancar)',
+            'Automático al arrancar desde seed-data/productos.xlsx (idempotente)',
         },
       };
     }

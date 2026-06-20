@@ -1,4 +1,10 @@
-export type NavIconName = 'plus' | 'history' | 'catalog' | 'categories' | 'customers'
+export type NavIconName =
+  | 'plus'
+  | 'history'
+  | 'trash'
+  | 'catalog'
+  | 'categories'
+  | 'customers'
 
 export interface NavItem {
   to: string
@@ -21,6 +27,12 @@ export const mainNavItems: NavItem[] = [
     shortLabel: 'Historial',
     icon: 'history',
     end: true,
+  },
+  {
+    to: '/proformas/papelera',
+    label: 'Papelera',
+    shortLabel: 'Papelera',
+    icon: 'trash',
   },
   {
     to: '/catalogo',

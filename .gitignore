@@ -32,3 +32,6 @@ npm-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# Archivos temporales de Excel (bloqueo al abrir en Office)
+~$*

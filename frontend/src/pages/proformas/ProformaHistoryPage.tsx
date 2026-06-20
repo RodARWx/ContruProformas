@@ -5,12 +5,15 @@ import type { TableColumn } from '../../components/ui'
 import { useProformaDraft } from '../../context/ProformaDraftContext'
 import {
   cloneProforma,
+  deleteProforma,
+  downloadExportFile,
   exportProforma,
   fetchNextProformaId,
   fetchProforma,
   fetchProformas,
 } from '../../features/proformas/proformasApi'
 import { getApiErrorMessage } from '../../lib/api'
+import { buildExportFilename } from '../../lib/exportFilenames'
 import { formatCurrency } from '../../lib/format'
 import { notify } from '../../lib/toast'
 import type { Proforma } from '../../types/proforma'
@@ -21,6 +24,7 @@ export function ProformaHistoryPage() {
   const [items, setItems] = useState<Proforma[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
   const [filters, setFilters] = useState({
     id: '',
     proyecto: '',
@@ -45,7 +49,24 @@ export function ProformaHistoryPage() {
     void loadHistory()
   }, [loadHistory])
 
-  async function handleExport(idProforma: string) {
+  async function downloadExportedFiles(proforma: Proforma) {
+    const excelName = buildExportFilename(
+      proforma.idProforma,
+      proforma.nombreProyecto,
+      'xlsx',
+    )
+    const pdfName = buildExportFilename(
+      proforma.idProforma,
+      proforma.nombreProyecto,
+      'pdf',
+    )
+
+    await downloadExportFile(excelName)
+    await downloadExportFile(pdfName)
+  }
+
+  async function handleExport(proforma: Proforma) {
+    const { idProforma } = proforma
     setActiveId(idProforma)
     try {
       const result = await exportProforma(idProforma)
@@ -56,14 +77,20 @@ export function ProformaHistoryPage() {
         ),
       )
 
-      const paths = [result.pdf?.relativePath, result.excel?.relativePath]
-        .filter(Boolean)
-        .join(' · ')
+      const excelFilename = result.excel?.filename
+      const pdfFilename = result.pdf?.filename
+
+      if (excelFilename) {
+        await downloadExportFile(excelFilename)
+      }
+      if (pdfFilename) {
+        await downloadExportFile(pdfFilename)
+      }
 
       notify.success(
         'Proforma exportada',
         [
-          paths || result.exportDirectory,
+          'Archivos descargados en su dispositivo.',
           `Subtotal ${formatCurrency(refreshed.subtotal)} · IVA ${formatCurrency(refreshed.iva)} · Total ${formatCurrency(refreshed.totalGeneral)}`,
           refreshed.tiempoEjecucion
             ? `Tiempo de ejecución: ${refreshed.tiempoEjecucion} días`
@@ -74,6 +101,34 @@ export function ProformaHistoryPage() {
       )
     } catch (error) {
       notify.error('No se pudo exportar la proforma', getApiErrorMessage(error))
+    } finally {
+      setActiveId(null)
+    }
+  }
+
+  async function handleDownload(proforma: Proforma) {
+    setActiveId(proforma.idProforma)
+    try {
+      await downloadExportedFiles(proforma)
+      notify.success('Descarga iniciada', 'PDF y Excel exportados previamente.')
+    } catch (error) {
+      notify.error('No se pudieron descargar los archivos', getApiErrorMessage(error))
+    } finally {
+      setActiveId(null)
+    }
+  }
+
+  async function handleDelete(idProforma: string) {
+    setActiveId(idProforma)
+    try {
+      await deleteProforma(idProforma)
+      setItems((current) =>
+        current.filter((item) => item.idProforma !== idProforma),
+      )
+      setPendingDeleteId(null)
+      notify.success('Proforma enviada a la papelera')
+    } catch (error) {
+      notify.error('No se pudo eliminar la proforma', getApiErrorMessage(error))
     } finally {
       setActiveId(null)
     }
@@ -196,14 +251,54 @@ export function ProformaHistoryPage() {
           >
             Clonar proforma
           </Button>
-          <Button
-            type="button"
-            variant="primary"
-            onClick={() => void handleExport(row.idProforma)}
-            disabled={row.status === 'EXPORTED' || activeId === row.idProforma}
-          >
-            Exportar PDF/Excel
-          </Button>
+          {row.status === 'EXPORTED' ? (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => void handleDownload(row)}
+              disabled={activeId === row.idProforma}
+            >
+              Descargar PDF/Excel
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="primary"
+              onClick={() => void handleExport(row)}
+              disabled={activeId === row.idProforma}
+            >
+              Exportar PDF/Excel
+            </Button>
+          )}
+          {pendingDeleteId === row.idProforma ? (
+            <>
+              <Button
+                type="button"
+                variant="danger"
+                onClick={() => void handleDelete(row.idProforma)}
+                disabled={activeId === row.idProforma}
+              >
+                Confirmar
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setPendingDeleteId(null)}
+                disabled={activeId === row.idProforma}
+              >
+                Cancelar
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => setPendingDeleteId(row.idProforma)}
+              disabled={activeId === row.idProforma}
+            >
+              Eliminar
+            </Button>
+          )}
         </div>
       ),
     },
@@ -218,8 +313,8 @@ export function ProformaHistoryPage() {
               Historial
             </h1>
             <p className="mt-2 max-w-2xl text-sm text-brand-gray/80">
-              Proformas guardadas en el servidor. Puede exportar, clonar y filtrar
-              en cliente por ID, proyecto, cliente y rango de fechas.
+              Proformas guardadas en el servidor. Puede exportar, descargar, clonar,
+              eliminar y filtrar por ID, proyecto, cliente y rango de fechas.
             </p>
           </div>
         </div>
