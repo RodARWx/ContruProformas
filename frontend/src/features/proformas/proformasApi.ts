@@ -66,6 +66,10 @@ export async function restoreProforma(idProforma: string): Promise<Proforma> {
   return apiPatch<Proforma>(`/proformas/${encodeURIComponent(idProforma)}/restore`)
 }
 
+export async function permanentDeleteProforma(idProforma: string): Promise<void> {
+  await apiDelete(`/proformas/trash/${encodeURIComponent(idProforma)}`)
+}
+
 export async function downloadExportFile(filename: string): Promise<void> {
   await apiDownloadFile(
     `/export/download/${encodeURIComponent(filename)}`,

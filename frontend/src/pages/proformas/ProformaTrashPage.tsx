@@ -3,6 +3,7 @@ import { Button, Card, Section, Table } from '../../components/ui'
 import type { TableColumn } from '../../components/ui'
 import {
   fetchTrashedProformas,
+  permanentDeleteProforma,
   restoreProforma,
 } from '../../features/proformas/proformasApi'
 import { getApiErrorMessage } from '../../lib/api'
@@ -14,6 +15,9 @@ export function ProformaTrashPage() {
   const [items, setItems] = useState<Proforma[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [pendingPermanentDeleteId, setPendingPermanentDeleteId] = useState<
+    string | null
+  >(null)
 
   const loadTrash = useCallback(async () => {
     setIsLoading(true)
@@ -33,6 +37,7 @@ export function ProformaTrashPage() {
 
   async function handleRestore(idProforma: string) {
     setActiveId(idProforma)
+    setPendingPermanentDeleteId(null)
     try {
       await restoreProforma(idProforma)
       setItems((current) =>
@@ -41,6 +46,28 @@ export function ProformaTrashPage() {
       notify.success('Proforma restaurada', `El ID ${idProforma} volvió al historial.`)
     } catch (error) {
       notify.error('No se pudo restaurar la proforma', getApiErrorMessage(error))
+    } finally {
+      setActiveId(null)
+    }
+  }
+
+  async function handlePermanentDelete(idProforma: string) {
+    setActiveId(idProforma)
+    try {
+      await permanentDeleteProforma(idProforma)
+      setItems((current) =>
+        current.filter((item) => item.idProforma !== idProforma),
+      )
+      setPendingPermanentDeleteId(null)
+      notify.success(
+        'Proforma eliminada permanentemente',
+        `El ID ${idProforma} ya no existe en el sistema.`,
+      )
+    } catch (error) {
+      notify.error(
+        'No se pudo eliminar permanentemente',
+        getApiErrorMessage(error),
+      )
     } finally {
       setActiveId(null)
     }
@@ -78,14 +105,48 @@ export function ProformaTrashPage() {
       key: 'acciones',
       header: 'Acciones',
       render: (row) => (
-        <Button
-          type="button"
-          variant="primary"
-          onClick={() => void handleRestore(row.idProforma)}
-          disabled={activeId === row.idProforma}
-        >
-          Restaurar
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              setPendingPermanentDeleteId(null)
+              void handleRestore(row.idProforma)
+            }}
+            disabled={activeId === row.idProforma}
+          >
+            Restaurar
+          </Button>
+          {pendingPermanentDeleteId === row.idProforma ? (
+            <>
+              <Button
+                type="button"
+                variant="danger"
+                onClick={() => void handlePermanentDelete(row.idProforma)}
+                disabled={activeId === row.idProforma}
+              >
+                Confirmar eliminación
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setPendingPermanentDeleteId(null)}
+                disabled={activeId === row.idProforma}
+              >
+                Cancelar
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              variant="danger"
+              onClick={() => setPendingPermanentDeleteId(row.idProforma)}
+              disabled={activeId === row.idProforma}
+            >
+              Eliminar permanentemente
+            </Button>
+          )}
+        </div>
       ),
     },
   ]
@@ -97,8 +158,9 @@ export function ProformaTrashPage() {
           Papelera
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-brand-gray/80">
-          Proformas eliminadas del historial. Puede restaurarlas para volver a
-          editarlas o exportarlas.
+          Proformas eliminadas del historial. Puede restaurarlas o eliminarlas
+          permanentemente de una en una. La eliminación definitiva libera el ID
+          para volver a usarlo.
         </p>
       </header>
 

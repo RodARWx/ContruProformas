@@ -282,6 +282,12 @@ export class ProformasService {
       return;
     }
 
+    if (existing.deletedAt) {
+      throw new ConflictException(
+        `El ID "${idProforma}" está en la papelera. Restáurelo o elimínelo permanentemente antes de reutilizarlo.`,
+      );
+    }
+
     if (existing.status === ProformaStatus.EXPORTED) {
       throw new ConflictException(
         `El ID "${idProforma}" ya existe en una proforma exportada`,
@@ -356,5 +362,25 @@ export class ProformasService {
 
     await this.proformaRepository.restore(idProforma);
     return this.findOne(idProforma);
+  }
+
+  /**
+   * Elimina permanentemente una proforma que ya está en la papelera.
+   * Solo se permite de una en una; libera el ID para reutilización futura.
+   */
+  async permanentRemove(idProforma: string): Promise<void> {
+    const proforma = await this.proformaRepository.findOne({
+      where: { idProforma },
+      withDeleted: true,
+      relations: [...this.defaultRelations],
+    });
+
+    if (!proforma?.deletedAt) {
+      throw new NotFoundException(
+        `Proforma "${idProforma}" no está en la papelera o ya fue eliminada`,
+      );
+    }
+
+    await this.proformaRepository.remove(proforma);
   }
 }

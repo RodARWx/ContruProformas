@@ -31,6 +31,12 @@ export class ProformasController {
     return this.proformasService.findTrash();
   }
 
+  /** Elimina permanentemente una proforma en la papelera (una a la vez) */
+  @Delete('trash/:id')
+  permanentRemove(@Param('id') id: string): Promise<void> {
+    return this.proformasService.permanentRemove(id);
+  }
+
   /**
    * Sugiere el siguiente ID secuencial basado en el último registro guardado.
    * Ejemplo de respuesta: { "suggestedId": "CM-PROF-86" }

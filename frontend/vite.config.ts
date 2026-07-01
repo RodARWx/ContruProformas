@@ -12,6 +12,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icons.svg', 'construmetrica-pwa.svg'],
       manifest: {
+        id: '/',
         name: 'Construproformas',
         short_name: 'Construproformas',
         description: 'Generación mobile-first de proformas para Construmétrica.',

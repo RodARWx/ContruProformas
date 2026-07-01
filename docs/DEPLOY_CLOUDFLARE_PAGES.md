@@ -50,15 +50,27 @@ Tras hacer push y redeploy, las rutas como `/proformas` funcionan al recargar la
 
 Si tu panel sí muestra **Redirects** o **Single Page Application**, puedes añadir la misma regla allí como respaldo.
 
+### Nombre de la PWA (punto 3 — alcance V2)
+
+El nombre correcto es **Construproformas** (con **s**). En el código ya está en `index.html`, manifest PWA y meta `apple-mobile-web-app-title`.
+
+Si al instalar la PWA aún aparece **contruproformas** (sin **s**), el origen suele ser el **nombre del proyecto** en Cloudflare (`contruproformas.pages.dev`). Para corregirlo:
+
+1. Cloudflare Dashboard → **Workers & Pages** → proyecto → **Settings** → **General** → renombrar a `construproformas` si el panel lo permite, **o**
+2. Crear un proyecto Pages nuevo con nombre correcto y apuntar el mismo repo, **o**
+3. Aceptar la URL `.pages.dev` actual pero confiar en el manifest (nombre visible al instalar debería ser Construproformas tras redeploy).
+
+Actualice `CORS_ORIGIN` en Railway si cambia el dominio del frontend.
+
 ---
 
 ## Tras el deploy
 
-1. Copia la URL del frontend (ej. `https://contruproformas.pages.dev`)
+1. Copia la URL del frontend (ej. `https://construproformas.pages.dev`)
 2. En **Railway** → backend → Variables:
 
 ```env
-CORS_ORIGIN=https://contruproformas.pages.dev
+CORS_ORIGIN=https://construproformas.pages.dev
 ```
 
 3. Redeploy backend si hace falta.

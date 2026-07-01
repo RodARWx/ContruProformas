@@ -15,7 +15,9 @@ Incluye backend API (NestJS) y frontend web mobile-first/PWA (React + Vite), con
 - [Manual técnico completo](docs/MANUAL_TECNICO.md) — arquitectura, tecnologías, despliegue local vs Docker
 - [Handoff al equipo](docs/HANDOFF_BACKEND.md) — qué está hecho, checklist, consideraciones para frontend/QA
 - [Cambios de frontend](docs/CAMBIOS_FRONTEND.md) — resumen funcional y técnico de lo implementado (Fases 1-11)
-- [Guía de frontend](frontend/README.md) — configuración `.env`, desarrollo, build y checklist QA final
+- [Manual de usuario V2 (borrador)](docs/MANUAL_USUARIO_V2.md) — reglas de negocio, papelera, exportación, alcance NAS/offline
+- [Casos extremos V2](docs/EDGE_CASES_V2.md) — matriz de pruebas y script `npm run test:edge-cases`
+- [Despliegue Cloudflare Pages](docs/DEPLOY_CLOUDFLARE_PAGES.md) — frontend en producción
 
 ## Estructura del repositorio
 
