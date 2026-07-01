@@ -24,6 +24,8 @@ Variables disponibles:
 | `VITE_API_KEY` | Clave enviada en header `X-API-KEY` | `construproformas-dev-key` |
 | `VITE_ACCESS_PIN` | PIN de acceso del lado del cliente (no es login del backend) | `2585` |
 
+Tras cambiar `.env`, reinicie `npm run dev` (Vite solo lee variables al arrancar).
+
 ### Desarrollo local (recomendado)
 
 Use `VITE_API_BASE_URL=/api`. Vite hace proxy a `http://localhost:3000` y evita problemas de CORS sin modificar el backend.

@@ -1,5 +1,39 @@
 # Despliegue frontend en Cloudflare Pages
 
+## Interfaz nueva (2025-2026): "Create application"
+
+Cloudflare unificó Workers y Pages bajo **Create application**. Si solo ves `npx wrangler deploy`, probablemente estás creando un **Worker**, no un sitio **Pages** estático.
+
+### Ruta correcta en el dashboard
+
+1. Entra a [Workers & Pages](https://dash.cloudflare.com/?to=/:account/workers-and-pages) (menú lateral izquierdo).
+2. Pulsa **Create application** (o **Create**).
+3. Elige la pestaña o tarjeta **Pages** — **no** "Worker" ni plantilla con Wrangler.
+4. Selecciona **Connect to Git** (conectar repositorio).
+5. Autoriza GitHub y elige el repo `ContruProformas`.
+6. En **Build configuration**:
+
+| Campo | Valor |
+|-------|-------|
+| Root directory | `frontend` |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| **Deploy command** | **VACIO** (borra `npx wrangler deploy`) |
+
+7. **Save and Deploy**.
+
+### Si ya creaste un proyecto Worker por error
+
+- Opción A: Crear un proyecto **nuevo** tipo **Pages** con Git (recomendado para esta PWA).
+- Opción B: En el proyecto existente → **Settings** → **Build** → borrar el Deploy command y verificar que el output sea `dist`.
+
+### Enlace directo útil
+
+- Lista de proyectos: `https://dash.cloudflare.com/` → cuenta → **Workers & Pages**
+- Documentación oficial: [Pages — Git integration](https://developers.cloudflare.com/pages/get-started/git-integration/)
+
+---
+
 ## Error común: `Invalid _redirects` + `npx wrangler deploy`
 
 Cloudflare tiene **dos modos distintos**:
